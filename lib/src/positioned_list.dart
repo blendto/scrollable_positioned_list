@@ -308,63 +308,61 @@ class _PositionedListState extends State<PositionedList> {
   void _schedulePositionNotificationUpdate() {
     if (!updateScheduled) {
       updateScheduled = true;
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        final elements = registeredElements.value;
-        if (elements == null) {
-          updateScheduled = false;
-          return;
-        }
-        final positions = <ItemPosition>[];
-        RenderViewportBase? viewport;
-        for (var element in elements) {
-          final RenderBox box = element.renderObject as RenderBox;
-          viewport ??= RenderAbstractViewport.of(box) as RenderViewportBase?;
-          var anchor = 0.0;
-          if (viewport is RenderViewport) {
-            anchor = viewport.anchor;
-          }
-
-          if (viewport is CustomRenderViewport) {
-            anchor = viewport.anchor;
-          }
-
-          final ValueKey<int> key = element.widget.key as ValueKey<int>;
-          // Skip this element if `box` has never been laid out.
-          if (!box.hasSize) continue;
-          if (widget.scrollDirection == Axis.vertical) {
-            final reveal = viewport!.getOffsetToReveal(box, 0).offset;
-            if (!reveal.isFinite) continue;
-            final itemOffset =
-                reveal - viewport.offset.pixels + anchor * viewport.size.height;
-            positions.add(ItemPosition(
-                index: key.value,
-                itemLeadingEdge: itemOffset.round() /
-                    scrollController.position.viewportDimension,
-                itemTrailingEdge: (itemOffset + box.size.height).round() /
-                    scrollController.position.viewportDimension));
-          } else {
-            final itemOffset =
-                box.localToGlobal(Offset.zero, ancestor: viewport).dx;
-            if (!itemOffset.isFinite) continue;
-            positions.add(ItemPosition(
-                index: key.value,
-                itemLeadingEdge: (widget.reverse
-                            ? scrollController.position.viewportDimension -
-                                (itemOffset + box.size.width)
-                            : itemOffset)
-                        .round() /
-                    scrollController.position.viewportDimension,
-                itemTrailingEdge: (widget.reverse
-                            ? scrollController.position.viewportDimension -
-                                itemOffset
-                            : (itemOffset + box.size.width))
-                        .round() /
-                    scrollController.position.viewportDimension));
-          }
-        }
-        widget.itemPositionsNotifier?.itemPositions.value = positions;
+      final elements = registeredElements.value;
+      if (elements == null) {
         updateScheduled = false;
-      });
+        return;
+      }
+      final positions = <ItemPosition>[];
+      RenderViewportBase? viewport;
+      for (var element in elements) {
+        final RenderBox box = element.renderObject as RenderBox;
+        viewport ??= RenderAbstractViewport.of(box) as RenderViewportBase?;
+        var anchor = 0.0;
+        if (viewport is RenderViewport) {
+          anchor = viewport.anchor;
+        }
+
+        if (viewport is CustomRenderViewport) {
+          anchor = viewport.anchor;
+        }
+
+        final ValueKey<int> key = element.widget.key as ValueKey<int>;
+        // Skip this element if `box` has never been laid out.
+        if (!box.hasSize) continue;
+        if (widget.scrollDirection == Axis.vertical) {
+          final reveal = viewport!.getOffsetToReveal(box, 0).offset;
+          if (!reveal.isFinite) continue;
+          final itemOffset =
+              reveal - viewport.offset.pixels + anchor * viewport.size.height;
+          positions.add(ItemPosition(
+              index: key.value,
+              itemLeadingEdge: itemOffset.round() /
+                  scrollController.position.viewportDimension,
+              itemTrailingEdge: (itemOffset + box.size.height).round() /
+                  scrollController.position.viewportDimension));
+        } else {
+          final itemOffset =
+              box.localToGlobal(Offset.zero, ancestor: viewport).dx;
+          if (!itemOffset.isFinite) continue;
+          positions.add(ItemPosition(
+              index: key.value,
+              itemLeadingEdge: (widget.reverse
+                          ? scrollController.position.viewportDimension -
+                              (itemOffset + box.size.width)
+                          : itemOffset)
+                      .round() /
+                  scrollController.position.viewportDimension,
+              itemTrailingEdge: (widget.reverse
+                          ? scrollController.position.viewportDimension -
+                              itemOffset
+                          : (itemOffset + box.size.width))
+                      .round() /
+                  scrollController.position.viewportDimension));
+        }
+      }
+      widget.itemPositionsNotifier?.itemPositions.value = positions;
+      updateScheduled = false;
     }
   }
 }
