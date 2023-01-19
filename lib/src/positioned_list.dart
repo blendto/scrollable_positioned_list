@@ -155,6 +155,7 @@ class _PositionedListState extends State<PositionedList> {
 
   @override
   void dispose() {
+    _notificationUpdateDebouncer.cancel();
     scrollController.removeListener(_schedulePositionNotificationUpdate);
     super.dispose();
   }
